@@ -1,10 +1,47 @@
 'use strict';
 
+const filter = (input, ignoredTagsList) => {
+
+    let allTags = Array.from(input.matchAll(/<(.*?)>/gi));
+
+    if (allTags.length === 0) {
+        return escapeAllExceptTags(input);
+    }
+
+    let maxNumOfIterations = 0;
+
+    allTags.forEach(function (currentTag) {
+        let tagInIgnoredTags = isTagIgnored(currentTag[1], ignoredTagsList);
+        if (!tagInIgnoredTags) {
+            maxNumOfIterations++;
+        }
+    });
+
+    input = escapeAllExceptTags(input);
+    if (maxNumOfIterations === 0) {
+        return input;
+    }
+
+    let numberOfCurrentIteration = 0;
+    while (numberOfCurrentIteration !== maxNumOfIterations) {
+        numberOfCurrentIteration++;
+        allTags = Array.from(input.matchAll(/<(.*?)>/gi));
+
+        let currentTag = allTags[0][1];
+        let tagInIgnoredTags = isTagIgnored(currentTag, ignoredTagsList);
+        if (!tagInIgnoredTags) {
+            input = replaceAt(input, allTags[0].index, "&lt;");
+            input = replaceAt(input, allTags[0].index + currentTag.length + "&lt;".length, "&gt;");
+        }
+    }
+    return input;
+};
+
 const replaceAt = (string, index, replace) => {
     return string.substring(0, index) + replace + string.substring(index + 1);
 };
 
-let escapeAllExceptTags = (input) => {
+const escapeAllExceptTags = (input) => {
     return input
         .replace(/&/g, "&amp;")
         .replace(/\s<\s/g, " &lt; ")
@@ -22,42 +59,4 @@ const isTagIgnored = (currentTag, ignoredTags) => {
         tagInIgnoredTags = (ignoredTags.indexOf(currentTag) > -1);
     }
     return tagInIgnoredTags;
-};
-
-const filter = function (input, ignoredTagsList) {
-
-    let allTags = input.matchAll(/<(.*?)>/gi);
-    allTags = Array.from(allTags);
-
-    if (allTags.length === 0) {
-        input = escapeAllExceptTags(input);
-        return input;
-    }
-
-    let maxNumOfIterations = 0;
-    for (let i = 0; i < allTags.length; i++) {
-        let tagInIgnoredTags = isTagIgnored(allTags[i][1], ignoredTagsList);
-        if (!tagInIgnoredTags) {
-            maxNumOfIterations += 1;
-        }
-    }
-    input = escapeAllExceptTags(input);
-    if (maxNumOfIterations === 0) {
-        return input;
-    }
-
-    let numberOfCurrentIteration = 0;
-    while (numberOfCurrentIteration !== maxNumOfIterations) {
-        numberOfCurrentIteration++;
-        allTags = input.matchAll(/<(.*?)>/gi);
-        allTags = Array.from(allTags);
-
-        let currentTag = allTags[0][1];
-        let tagInIgnoredTags = isTagIgnored(currentTag, ignoredTagsList);
-        if (tagInIgnoredTags === false) {
-            input = replaceAt(input, allTags[0].index, "&lt;");
-            input = replaceAt(input, allTags[0].index + currentTag.length + "&lt;".length, "&gt;");
-        }
-    }
-    return input;
 };
