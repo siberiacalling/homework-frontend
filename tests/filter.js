@@ -1,4 +1,5 @@
 'use strict';
+require('../source/filter.js')();
 
 QUnit.module('Проверка работы функции filter', function () {
 	QUnit.test('filter экранирует символы в обычном тексте', function (assert) {
@@ -7,6 +8,7 @@ QUnit.module('Проверка работы функции filter', function () 
 		const output = filter(input, [ 'strong', 'em' ]);
 
 		const expected = '- &quot;42!&quot;, сказала Машина. Это и был главный ответ на Вопрос жизни, вселенной &amp; всего такого...';
+		console.log(output);
 
 		assert.strictEqual(output, expected);
 	});
@@ -15,9 +17,8 @@ QUnit.module('Проверка работы функции filter', function () 
 		const input = '<strong>Hello, <em>World!</em></strong> 1 + 2 < 4!';
 
 		const output = filter(input, [ 'strong', 'em' ]);
-
-		const expected = '<strong>Hello, <em>World!</em></strong> 1 + 2 &lt; 4!';
-
+		console.log(output);
+		const expected = '<strong>Hello, <em>World!</em></strong> 1 + 2 &lt; 4!'
 		assert.strictEqual(output, expected);
 	});
 
