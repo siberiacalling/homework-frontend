@@ -1,5 +1,4 @@
 'use strict';
-require('../source/filter.js')();
 
 QUnit.module('Проверка работы функции filter', function () {
 	QUnit.test('filter экранирует символы в обычном тексте', function (assert) {

@@ -1,7 +1,3 @@
-module.exports = function () {
-    this.filter = filter;
-    //etc
-};
 'use strict';
 
 const replaceAt = (string, index, replace) => {
