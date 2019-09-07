@@ -25,13 +25,11 @@ const filter = (input, ignoredTagsList) => {
         numberOfCurrentIteration++;
         allTags = Array.from(input.matchAll(/<(.*?)>/gi));
 
-        let tagForEscape = '';
+        let tagForEscape = "";
         let tagForEscapeIndex = 0;
 
         for (let j = 0; j < allTags.length; j++) {
-            let tagInIgnoredTags = isTagIgnored(allTags[j][1], ignoredTagsList);
-
-            if (!tagInIgnoredTags) {
+            if (!isTagIgnored(allTags[j][1], ignoredTagsList)) {
                 tagForEscape = allTags[j][1];
                 tagForEscapeIndex = j;
                 break;
@@ -61,7 +59,8 @@ const isTagIgnored = (currentTag, ignoredTags) => {
     if (numberWordInString > 1) {
         currentTag = getFirstWord(currentTag);
     }
-    if (currentTag.charAt(0) === '/') {
+
+    if (currentTag.charAt(0) === "/") {
         let currentTagWithoutSlash = currentTag.substring(1);
         return (ignoredTags.includes(currentTagWithoutSlash));
     }
@@ -73,9 +72,6 @@ const countWords = (str) => {
 };
 
 const getFirstWord = (str) => {
-    let spacePosition = str.indexOf(' ');
-    if (spacePosition === -1) {
-        return str;
-    }
-    return str.substr(0, spacePosition);
+    let spacePosition = str.indexOf(" ");
+    return spacePosition === -1 ? str : str.substr(0, spacePosition);
 };
