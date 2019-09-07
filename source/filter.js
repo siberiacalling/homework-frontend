@@ -27,12 +27,20 @@ const filter = (input, ignoredTagsList) => {
         numberOfCurrentIteration++;
         allTags = Array.from(input.matchAll(/<(.*?)>/gi));
 
-        let currentTag = allTags[0][1];
-        let tagInIgnoredTags = isTagIgnored(currentTag, ignoredTagsList);
-        if (!tagInIgnoredTags) {
-            input = replaceAt(input, allTags[0].index, "&lt;");
-            input = replaceAt(input, allTags[0].index + currentTag.length + "&lt;".length, "&gt;");
+        let tagForEscape;
+        let tagForEscapeIndex;
+
+        for (let i = 0; i < allTags.length; i++) {
+            let tagInIgnoredTags = isTagIgnored(allTags[i][1], ignoredTagsList);
+
+            if (!tagInIgnoredTags) {
+                tagForEscape = allTags[i][1];
+                tagForEscapeIndex = i;
+                break;
+            }
         }
+        input = replaceAt(input, allTags[tagForEscapeIndex].index, "&lt;");
+        input = replaceAt(input, allTags[tagForEscapeIndex].index + tagForEscape.length + "&lt;".length, "&gt;");
     }
     return input;
 };
@@ -50,8 +58,24 @@ const escapeAllExceptTags = (input) => {
         .replace(/'/g, "&#39;");
 };
 
+const countWords = (str) => {
+    return str.split(" ").length;
+};
+
+const getFirstWord = (str) => {
+    let spacePosition = str.indexOf(' ');
+    if (spacePosition === -1)
+        return str;
+    else
+        return str.substr(0, spacePosition);
+};
+
 const isTagIgnored = (currentTag, ignoredTags) => {
     let tagInIgnoredTags;
+    let numberWordInString = countWords(currentTag);
+    if (numberWordInString > 1) {
+        currentTag = getFirstWord(currentTag);
+    }
     if (currentTag.charAt(0) === '/') {
         let currentTagWithoutSlash = currentTag.substring(1);
         tagInIgnoredTags = (ignoredTags.indexOf(currentTagWithoutSlash) > -1);
