@@ -8,19 +8,18 @@ const filter = (input, ignoredTagsList) => {
         return escapeAllExceptTags(input);
     }
 
-    let maxNumOfIterations = 0;
-    allTags.forEach(currentTag => {
-        if (!isTagIgnored(currentTag[1], ignoredTagsList)) {
-            maxNumOfIterations++;
-        }
-    });
+    let maxNumOfIterations = allTags.reduce((counter, currentTag) => {
+        return counter + (!isTagIgnored(currentTag[1], ignoredTagsList));
+    }, 0);
 
     input = escapeAllExceptTags(input);
     if (maxNumOfIterations === 0) {
         return input;
     }
 
+    let numberOfCurrentIteration = 0;
     for (let i = 0; i < maxNumOfIterations; i++) {
+        numberOfCurrentIteration++;
         allTags = Array.from(input.matchAll(/<(.*?)>/gi));
 
         let tagForEscape = "";
@@ -53,7 +52,8 @@ const escapeAllExceptTags = (input) => {
 };
 
 const isTagIgnored = (currentTag, ignoredTags) => {
-    if (countWords(currentTag) > 1) {
+    let numberWordInString = countWords(currentTag);
+    if (numberWordInString > 1) {
         currentTag = getFirstWord(currentTag);
     }
 
