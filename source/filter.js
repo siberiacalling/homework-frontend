@@ -17,9 +17,8 @@ const filter = (input, ignoredTagsList) => {
         return input;
     }
 
-    let numberOfCurrentIteration = 0;
+    // allTags = allTags.filter(isTagIgnored);
     for (let i = 0; i < maxNumOfIterations; i++) {
-        numberOfCurrentIteration++;
         allTags = Array.from(input.matchAll(/<(.*?)>/gi));
 
         let tagForEscape = "";
@@ -34,6 +33,8 @@ const filter = (input, ignoredTagsList) => {
         }
         input = replaceAt(input, allTags[tagForEscapeIndex].index, "&lt;");
         input = replaceAt(input, allTags[tagForEscapeIndex].index + tagForEscape.length + "&lt;".length, "&gt;");
+
+        // allTags = allTags.filter( currentValue => currentValue.index !== tagForEscapeIndex);
     }
     return input;
 };
@@ -52,8 +53,7 @@ const escapeAllExceptTags = (input) => {
 };
 
 const isTagIgnored = (currentTag, ignoredTags) => {
-    let numberWordInString = countWords(currentTag);
-    if (numberWordInString > 1) {
+    if (countWords(currentTag) > 1) {
         currentTag = getFirstWord(currentTag);
     }
 
