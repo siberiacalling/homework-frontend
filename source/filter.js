@@ -2,39 +2,41 @@
 
 const filter = (input, ignoredTagsList) => {
 
-    let allTags = Array.from(input.matchAll(/<(.*?)>/gi));
+    let allTags = Array.from(input.matchAll(/<(.*?)>/gi), elem => {
+        return {tag: elem[1], index: elem.index};
+    });
 
     if (allTags.length === 0) {
         return escapeAllExceptTags(input);
     }
 
-    let maxNumOfIterations = allTags.reduce((counter, currentTag) => {
-        return counter + (!isTagIgnored(currentTag[1], ignoredTagsList));
-    }, 0);
+    const maxNumOfIterations = allTags.reduce((acc, curr) => isTagForbidden(curr.tag, ignoredTagsList) ? acc + 1 : acc, 0);
 
     input = escapeAllExceptTags(input);
     if (maxNumOfIterations === 0) {
         return input;
     }
 
-    // allTags = allTags.filter(isTagIgnored);
     for (let i = 0; i < maxNumOfIterations; i++) {
-        allTags = Array.from(input.matchAll(/<(.*?)>/gi));
+        allTags = Array.from(input.matchAll(/<(.*?)>/gi), elem => {
+            return {tag: elem[1], index: elem.index};
+        });
 
         let tagForEscape = "";
         let tagForEscapeIndex = 0;
 
         for (let j = 0; j < allTags.length; j++) {
-            if (!isTagIgnored(allTags[j][1], ignoredTagsList)) {
-                tagForEscape = allTags[j][1];
+            if (isTagForbidden(allTags[j].tag, ignoredTagsList)) {
+                tagForEscape = allTags[j].tag;
                 tagForEscapeIndex = j;
                 break;
             }
         }
-        input = replaceAt(input, allTags[tagForEscapeIndex].index, "&lt;");
-        input = replaceAt(input, allTags[tagForEscapeIndex].index + tagForEscape.length + "&lt;".length, "&gt;");
 
-        // allTags = allTags.filter( currentValue => currentValue.index !== tagForEscapeIndex);
+        const LESS_THAN_ESCAPE = "&lt;";
+        const GREATER_THAN_ESCAPE = "&gt;";
+        input = replaceAt(input, allTags[tagForEscapeIndex].index, LESS_THAN_ESCAPE);
+        input = replaceAt(input, allTags[tagForEscapeIndex].index + tagForEscape.length + LESS_THAN_ESCAPE.length, GREATER_THAN_ESCAPE);
     }
     return input;
 };
@@ -44,31 +46,31 @@ const replaceAt = (string, index, replace) => {
 };
 
 const escapeAllExceptTags = (input) => {
+    const AMPERSAND_ESCAPE = "&amp;";
+    const LESS_THAN_SPACE_ESCAPE = " &lt; ";
+    const GREATER_THAN_SPACE_ESCAPE = " &gt; ";
+    const DOUBLE_QUOTE_ESCAPE = "&quot;";
+    const SINGLE_QUOTE_ESCAPE = "&#39;";
+
     return input
-        .replace(/&/g, "&amp;")
-        .replace(/\s<\s/g, " &lt; ")
-        .replace(/\s>\s/g, " &gt; ")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replace(/&/g, AMPERSAND_ESCAPE)
+        .replace(/\s<\s/g, LESS_THAN_SPACE_ESCAPE)
+        .replace(/\s>\s/g, GREATER_THAN_SPACE_ESCAPE)
+        .replace(/"/g, DOUBLE_QUOTE_ESCAPE)
+        .replace(/'/g, SINGLE_QUOTE_ESCAPE);
 };
 
-const isTagIgnored = (currentTag, ignoredTags) => {
-    if (countWords(currentTag) > 1) {
-        currentTag = getFirstWord(currentTag);
-    }
+const isTagForbidden = (currentTag, ignoredTags) => {
+    currentTag = getFirstWord(currentTag);
 
     if (currentTag.charAt(0) === "/") {
-        let currentTagWithoutSlash = currentTag.substring(1);
-        return (ignoredTags.includes(currentTagWithoutSlash));
+        const currentTagWithoutSlash = currentTag.substring(1);
+        return !ignoredTags.includes(currentTagWithoutSlash);
     }
-    return (ignoredTags.includes(currentTag));
-};
-
-const countWords = (str) => {
-    return str.split(" ").length;
+    return !ignoredTags.includes(currentTag);
 };
 
 const getFirstWord = (str) => {
-    let spacePosition = str.indexOf(" ");
+    const spacePosition = str.indexOf(" ");
     return spacePosition === -1 ? str : str.substr(0, spacePosition);
 };
